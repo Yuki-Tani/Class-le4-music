@@ -21,7 +21,7 @@ public class SpeechRecognizer {
 	
 	
 	/*
-	 * 謨吝ｸｫ繝輔ぃ繧､繝ｫ繧剃ｽ懈��(.wav -> vowel.tch)
+	 * 教師ファイルを作成(.wav -> vowel.tch)
 	 */
 	public static void main(String[] args) {
 		if(args.length != 5) {
@@ -30,10 +30,10 @@ public class SpeechRecognizer {
 		}
 		double[][] teacherDatas = new double[10][Constants.CEPSTRUM_DIMENSION];
 		try {
-		// AIUEO縺昴ｌ縺槭ｌ縺ｮ繝輔ぃ繧､繝ｫ縺ｧ蟄ｦ鄙�
+		// AIUEOそれぞれのファイルで学習
 		for(int i=0; i<5; i++) {
 			System.out.print("...file("+(i+1)+"): ");
-			// wav繝輔ぃ繧､繝ｫ隱ｭ縺ｿ霎ｼ縺ｿ
+			// wavファイル読み込み
 			File wavFile = new File(args[i]);
 			AudioInputStream stream = AudioSystem.getAudioInputStream(wavFile);
 			double[] wave = Le4MusicUtils.readWaveformMonaural(stream);
@@ -46,18 +46,18 @@ public class SpeechRecognizer {
 			int frameSize = (int) Math.round(frameDuration * sampleRate);
 			int shiftSize = (int) Math.round(shiftDuration * sampleRate);
 			
-			// 繧ｱ繝励せ繝医Λ繝�謚ｽ蜃ｺ
+			// ケプストラム抽出
 			ArrayList<double[]> cepstrum = new ArrayList<>();
 			Le4MusicUtils.sliding(wave, frameSize , shiftSize).forEach(
 					frame -> {
-						// 譛牙｣ｰ髻ｳ縺ｮ繝�繝ｼ繧ｿ縺ｮ縺ｿ謗｡逕ｨ
-						if(TransformTools.isVoicedSound(wave, sampleRate)) {
+						// 有声音のデータだけ抽出
+//						if(TransformTools.isVoicedSound(wave, sampleRate)) {
 							double[] ceps = TransformTools.getCepstrum(frame);
 							if(!Double.isInfinite(ceps[0])) cepstrum.add(ceps);
-						}
+//						}
 					}
 			);
-			// 繝�繝ｼ繧ｿ縺ｮ蟷ｳ蝮�繧偵→繧�
+			// データの平均を計算
 			double[] mean = new double[Constants.CEPSTRUM_DIMENSION];
 			for(int k=0; k<cepstrum.size(); k++) {
 				double[] ceps = cepstrum.get(k);
@@ -66,7 +66,7 @@ public class SpeechRecognizer {
 					mean[j] += ceps[j]/cepstrum.size();
 				}
 			}			
-			//繝�繝ｼ繧ｿ縺ｮ蛻�謨｣繧偵→繧�
+			//データの分散を計算
 			double[] dispersion = new double[Constants.CEPSTRUM_DIMENSION];
 			for(int k=0; k<cepstrum.size(); k++) {
 				double[] ceps = cepstrum.get(k);
@@ -79,7 +79,7 @@ public class SpeechRecognizer {
 			System.out.println("complete");
 		}
 			
-		// 繝�繝ｼ繧ｿ繧呈嶌縺崎ｾｼ縺ｿ
+		// データを書き込み
 		BufferedWriter out = new BufferedWriter(
 				new FileWriter(new File(Constants.SPEECH_RECOGNITION_TEACHER_FILE)));
 		for(int i=0;i<teacherDatas.length; i++) {
@@ -100,7 +100,7 @@ public class SpeechRecognizer {
 	
 	public SpeechRecognizer() {this(Constants.SPEECH_RECOGNITION_TEACHER_FILE);}
 	public SpeechRecognizer(String teacherFile) {
-		// 隱崎ｭ倥�ｮ貅門ｙ(vowel.tch -> data)
+		//　認識モデル読み込み(vowel.tch -> data)
 		mean = new double[6][Constants.CEPSTRUM_DIMENSION];
 		dispersion = new double[6][Constants.CEPSTRUM_DIMENSION];
 		try {
@@ -130,8 +130,8 @@ public class SpeechRecognizer {
 	}
 	
 	/*
-	 * 遏ｭ譎る俣縺ｮ髻ｳ豕｢繧帝浹螢ｰ隱崎ｭ倥☆繧�
-	 * @return 豈埼浹繧定｡ｨ縺呎紛謨ｰ(SpeechRecognizer.A,I,U,E,O)
+	 * 短時間の音波を音声認識する
+	 * @return 母音を表す整数(SpeechRecognizer.A,I,U,E,O)
 	 */
 	public double recognize(double[] miniWave) {
 		if(!prepared) {
@@ -170,12 +170,12 @@ public class SpeechRecognizer {
  	}
 	
 	/*
-	 * 髻ｳ豕｢繧呈ｯ埼浹縺ｮ蛻励↓螟画鋤
+	 * 音波を母音の列に変換
 	 */
 	public double[] toSpeach(double[] wave, double sampleRate, int frameSize, int shiftSize) {
 		double[] speach = 
 				Le4MusicUtils.sliding(wave, frameSize , shiftSize).mapToDouble(frame ->
-				// 辟｡螢ｰ髻ｳ縺ｪ繧�0縺ｨ縺吶ｋ
+				// 無声音は0とする
 					(TransformTools.isVoicedSound(frame, sampleRate))? 
 							recognize(frame):
 							0
@@ -184,7 +184,7 @@ public class SpeechRecognizer {
 	}
 	
 	/*
-	 * 豈埼浹縺ｫ蟇ｾ縺吶ｋ迚ｹ蠕ｴ繝吶け繝医Ν縺ｮ蟆､蠎ｦ繧定ｨ育ｮ�
+	 * 母音に対する特徴ベクトルの尤度を計算
 	 */
 	private double calcLikelihood(double[] cepstrum, int vowel) {
 		if(vowel != A && vowel != I &&vowel != U &&vowel != E &&vowel != O) {
@@ -194,7 +194,7 @@ public class SpeechRecognizer {
 	}
 	
 	/*
-	 * 豁｣隕丞�蟶�(邁｡譏�)縺ｮ遒ｺ邇�蟇�蠎ｦ髢｢謨ｰ縺九ｉ蛟､繧堤ｮ怜�ｺ
+	 * 正規分布(簡易)の確率密度関数から値を算出
 	 */
 	private double calcNomalDistribution(double[] x, double[] mean, double[] dispersion) {
 		

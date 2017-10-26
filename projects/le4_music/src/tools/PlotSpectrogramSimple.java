@@ -49,36 +49,23 @@ public class PlotSpectrogramSimple extends Application {
 		// 何要素分シフトするか
 		final int shiftSize = (int) Math.round(shiftDuration * sampleRate);
 
-		// 2^pとなる配列サイズを求める
-		final int fftSize = 1 << Le4MusicUtils.nextPow2(frameSize);
-		final int fftHalfSize = (fftSize >> 1) + 1;
-
 		// 短時間フーリエ変換をする
 		final double[][] specLog = TransformTools.toSpectrogram(waveform, frameSize, shiftSize);
 		
-		// x軸
-		final NumberAxis xAxis = new NumberAxis();
-		xAxis.setLabel("Time (Second)");
-		xAxis.setLowerBound(0.0);
-		xAxis.setUpperBound(specLog.length * shiftDuration);
-
-		// y軸
-		final NumberAxis yAxis = new NumberAxis();
-		yAxis.setLabel("Frequency (Hz)");
-		yAxis.setLowerBound(0.0);
-		yAxis.setUpperBound(sampleRate * 0.5);
-
-		
 		// チャートに名前をつける
-		String seriesName = ChartTools.requestName("series","spectrogram");
+		String title = ChartTools.requestName("series","spectrogram");
 		
-		// chチャート作成
-		final LineChartWithSpectrogram<Number, Number> chart = new LineChartWithSpectrogram<>(xAxis, yAxis);
-		chart.setParameters(specLog.length, fftHalfSize, sampleRate * 0.5);
-		chart.setTitle(seriesName);
-		Arrays.stream(specLog).forEach(chart::addSpecLog);
-		chart.setCreateSymbols(false);
-		chart.setLegendVisible(false);
+		
+		LineChartWithSpectrogram<Number,Number> chart = makeSpectrogramChart(
+				specLog,
+				frameDuration,
+				shiftDuration,
+				sampleRate,
+				title,
+				"time (second)",
+				"frequency (Hz)"
+		);
+				
 		final Scene chartScene = new Scene(chart, 800, 600);
 
 		// ボタン作成
@@ -98,6 +85,48 @@ public class PlotSpectrogramSimple extends Application {
 		primaryStage.setTitle(getClass().getName());
 		primaryStage.show();
 
+	}
+	
+	public static LineChartWithSpectrogram<Number, Number> makeSpectrogramChart(
+			double[][] spectrogramData,
+			double frameDuration,
+			double shiftDuration,
+			double sampleRate,
+			String title,
+			String xLabel,
+			String yLabel)
+	{
+		// 窓関数のフレーム長 // s * 1/s
+		final int frameSize = (int) Math.round(frameDuration * sampleRate);
+		// 何要素分シフトするか
+		final int shiftSize = (int) Math.round(shiftDuration * sampleRate);
+
+		// 2^pとなる配列サイズを求める
+		final int fftSize = 1 << Le4MusicUtils.nextPow2(frameSize);
+		final int fftHalfSize = (fftSize >> 1) + 1;
+		
+		// x軸
+		final NumberAxis xAxis = new NumberAxis();
+		xAxis.setLabel("Time (Second)");
+		xAxis.setLowerBound(0.0);
+		xAxis.setUpperBound(spectrogramData.length * shiftDuration);
+		// y軸
+		final NumberAxis yAxis = new NumberAxis();
+		yAxis.setLabel("Frequency (Hz)");
+		yAxis.setLowerBound(0.0);
+		yAxis.setUpperBound(sampleRate * 0.5);
+		yAxis.setTickUnit(sampleRate * 0.05);
+		yAxis.setAutoRanging(false);
+		
+		// chチャート作成
+		final LineChartWithSpectrogram<Number, Number> chart = new LineChartWithSpectrogram<>(xAxis, yAxis);
+		chart.setParameters(spectrogramData.length, fftHalfSize, sampleRate * 0.5);
+		chart.setTitle(title);
+		Arrays.stream(spectrogramData).forEach(chart::addSpecLog);
+		chart.setCreateSymbols(false);
+		chart.setLegendVisible(false);
+		
+		return chart;
 	}
 
 }

@@ -5,10 +5,13 @@ import java.util.stream.IntStream;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.scene.chart.Axis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.MouseEvent;
 
 public class ChartTools {
 
@@ -41,6 +44,16 @@ public class ChartTools {
 	public static LineChart<Number, Number> makeSimpleChart(
 			double[] plotData,
 			double xScale,
+			String title,
+			String xLabel,
+			String yLabel)
+	{
+		return makeSimpleChart(plotData,xScale,"",title,xLabel,yLabel);
+	}
+	
+	public static LineChart<Number, Number> makeSimpleChart(
+			double[] plotData,
+			double xScale,
 			String seriesName,
 			String title,
 			String xLabel,
@@ -54,7 +67,7 @@ public class ChartTools {
 
 		// データ系列に名前をつける
 		final XYChart.Series<Number, Number> series = new XYChart.Series<>();
-		series.setName(seriesName);
+		if(!seriesName.equals("")) series.setName(seriesName);
 		series.setData(data);
 
 		// 軸を作成
@@ -92,5 +105,43 @@ public class ChartTools {
 		series.setData(data);
 		
 		chart.getData().add(series);
+	}
+	
+	/*
+	 * y軸の上限を設定する
+	 */
+	public static void setYAxisDetails(XYChart<Number,Number> chart,double upperBound, double tick) {
+		NumberAxis yAxis = (NumberAxis) chart.getYAxis();
+		yAxis.setUpperBound(upperBound);
+		yAxis.setTickUnit(tick);
+		yAxis.setAutoRanging(false);
+	}
+
+	public static class ChartXYAction implements EventHandler<MouseEvent>{
+		
+		private LineChart<Number,Number> chart;
+		private double x,y;
+		
+		public ChartXYAction(LineChart<Number,Number> chart) {
+			this.chart = chart;
+			x = 0;
+			y = 0;
+		}
+		
+		@Override
+		public void handle(MouseEvent event) {
+			Axis<Number> xAxis = chart.getXAxis();
+			Axis<Number> yAxis = chart.getYAxis();
+			x = xAxis.getValueForDisplay(event.getX()).doubleValue();
+			y = yAxis.getValueForDisplay(event.getY()).doubleValue();
+			System.out.println("[click]"+chart.getTitle()+" x:"+x+" y:"+y);
+		}
+		
+		public double getX() {
+			return x;
+		}
+		public double getY() {
+			return y;
+		}
 	}
 }
