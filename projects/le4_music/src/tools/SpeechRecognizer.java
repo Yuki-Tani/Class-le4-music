@@ -21,7 +21,7 @@ public class SpeechRecognizer {
 	
 	
 	/*
-	 * 教師ファイルを作成(.wav -> vowel.tch)
+	 * 謨吝ｸｫ繝輔ぃ繧､繝ｫ繧剃ｽ懈��(.wav -> vowel.tch)
 	 */
 	public static void main(String[] args) {
 		if(args.length != 5) {
@@ -30,10 +30,10 @@ public class SpeechRecognizer {
 		}
 		double[][] teacherDatas = new double[10][Constants.CEPSTRUM_DIMENSION];
 		try {
-		// AIUEOそれぞれのファイルで学習
+		// AIUEO縺昴ｌ縺槭ｌ縺ｮ繝輔ぃ繧､繝ｫ縺ｧ蟄ｦ鄙�
 		for(int i=0; i<5; i++) {
 			System.out.print("...file("+(i+1)+"): ");
-			// wavファイル読み込み
+			// wav繝輔ぃ繧､繝ｫ隱ｭ縺ｿ霎ｼ縺ｿ
 			File wavFile = new File(args[i]);
 			AudioInputStream stream = AudioSystem.getAudioInputStream(wavFile);
 			double[] wave = Le4MusicUtils.readWaveformMonaural(stream);
@@ -46,18 +46,18 @@ public class SpeechRecognizer {
 			int frameSize = (int) Math.round(frameDuration * sampleRate);
 			int shiftSize = (int) Math.round(shiftDuration * sampleRate);
 			
-			// ケプストラム抽出
+			// 繧ｱ繝励せ繝医Λ繝�謚ｽ蜃ｺ
 			ArrayList<double[]> cepstrum = new ArrayList<>();
 			Le4MusicUtils.sliding(wave, frameSize , shiftSize).forEach(
 					frame -> {
-						// 有声音のデータのみ採用
+						// 譛牙｣ｰ髻ｳ縺ｮ繝�繝ｼ繧ｿ縺ｮ縺ｿ謗｡逕ｨ
 						if(TransformTools.isVoicedSound(wave, sampleRate)) {
 							double[] ceps = TransformTools.getCepstrum(frame);
 							if(!Double.isInfinite(ceps[0])) cepstrum.add(ceps);
 						}
 					}
 			);
-			// データの平均をとる
+			// 繝�繝ｼ繧ｿ縺ｮ蟷ｳ蝮�繧偵→繧�
 			double[] mean = new double[Constants.CEPSTRUM_DIMENSION];
 			for(int k=0; k<cepstrum.size(); k++) {
 				double[] ceps = cepstrum.get(k);
@@ -66,7 +66,7 @@ public class SpeechRecognizer {
 					mean[j] += ceps[j]/cepstrum.size();
 				}
 			}			
-			//データの分散をとる
+			//繝�繝ｼ繧ｿ縺ｮ蛻�謨｣繧偵→繧�
 			double[] dispersion = new double[Constants.CEPSTRUM_DIMENSION];
 			for(int k=0; k<cepstrum.size(); k++) {
 				double[] ceps = cepstrum.get(k);
@@ -79,7 +79,7 @@ public class SpeechRecognizer {
 			System.out.println("complete");
 		}
 			
-		// データを書き込み
+		// 繝�繝ｼ繧ｿ繧呈嶌縺崎ｾｼ縺ｿ
 		BufferedWriter out = new BufferedWriter(
 				new FileWriter(new File(Constants.SPEECH_RECOGNITION_TEACHER_FILE)));
 		for(int i=0;i<teacherDatas.length; i++) {
@@ -100,7 +100,7 @@ public class SpeechRecognizer {
 	
 	public SpeechRecognizer() {this(Constants.SPEECH_RECOGNITION_TEACHER_FILE);}
 	public SpeechRecognizer(String teacherFile) {
-		// 認識の準備(vowel.tch -> data)
+		// 隱崎ｭ倥�ｮ貅門ｙ(vowel.tch -> data)
 		mean = new double[6][Constants.CEPSTRUM_DIMENSION];
 		dispersion = new double[6][Constants.CEPSTRUM_DIMENSION];
 		try {
@@ -130,8 +130,8 @@ public class SpeechRecognizer {
 	}
 	
 	/*
-	 * 短時間の音波を音声認識する
-	 * @return 母音を表す整数(SpeechRecognizer.A,I,U,E,O)
+	 * 遏ｭ譎る俣縺ｮ髻ｳ豕｢繧帝浹螢ｰ隱崎ｭ倥☆繧�
+	 * @return 豈埼浹繧定｡ｨ縺呎紛謨ｰ(SpeechRecognizer.A,I,U,E,O)
 	 */
 	public double recognize(double[] miniWave) {
 		if(!prepared) {
@@ -139,7 +139,7 @@ public class SpeechRecognizer {
 			return 0;
 		}
 		double[] cepstrum = TransformTools.getCepstrum(miniWave);
-		double max = Double.MIN_VALUE;
+		double max = Double.NEGATIVE_INFINITY;
 		double maxVowel = 0;
 		double likelihood = calcLikelihood(cepstrum,A);
 		if(likelihood > max) {
@@ -170,12 +170,12 @@ public class SpeechRecognizer {
  	}
 	
 	/*
-	 * 音波を母音の列に変換
+	 * 髻ｳ豕｢繧呈ｯ埼浹縺ｮ蛻励↓螟画鋤
 	 */
 	public double[] toSpeach(double[] wave, double sampleRate, int frameSize, int shiftSize) {
 		double[] speach = 
 				Le4MusicUtils.sliding(wave, frameSize , shiftSize).mapToDouble(frame ->
-				// 無声音なら0とする
+				// 辟｡螢ｰ髻ｳ縺ｪ繧�0縺ｨ縺吶ｋ
 					(TransformTools.isVoicedSound(frame, sampleRate))? 
 							recognize(frame):
 							0
@@ -184,7 +184,7 @@ public class SpeechRecognizer {
 	}
 	
 	/*
-	 * 母音に対する特徴ベクトルの尤度を計算
+	 * 豈埼浹縺ｫ蟇ｾ縺吶ｋ迚ｹ蠕ｴ繝吶け繝医Ν縺ｮ蟆､蠎ｦ繧定ｨ育ｮ�
 	 */
 	private double calcLikelihood(double[] cepstrum, int vowel) {
 		if(vowel != A && vowel != I &&vowel != U &&vowel != E &&vowel != O) {
@@ -194,9 +194,19 @@ public class SpeechRecognizer {
 	}
 	
 	/*
-	 * 正規分布(簡易)の確率密度関数から値を算出
+	 * 豁｣隕丞�蟶�(邁｡譏�)縺ｮ遒ｺ邇�蟇�蠎ｦ髢｢謨ｰ縺九ｉ蛟､繧堤ｮ怜�ｺ
 	 */
 	private double calcNomalDistribution(double[] x, double[] mean, double[] dispersion) {
+		
+		double logsum = 0;
+		
+		for (int i = 0; i < mean.length; i++) {
+			logsum -= Math.log(Math.sqrt(dispersion[i]))
+					+Math.pow(x[i]-mean[i], 2)/(2*dispersion[i]);
+		}
+		return logsum;
+		
+		/*
 		double powSum = 0;
 		double disPdt = 1;
 		
@@ -206,6 +216,7 @@ public class SpeechRecognizer {
 		}
 		
 		return Math.exp(-powSum) / (Math.pow(2*Math.PI,mean.length/2.0) * disPdt);	
+		*/
 	}
 	
 	
