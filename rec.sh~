@@ -1,9 +1,0 @@
-echo "input file name :"
-read NAME
-echo "time :"
-read TIME
-if [ TIME -eq "" ]; then
-    TIME = 10
-fi
-rec -r 16k -b 16 -c 1 $NAME trim 0 $TIME
-echo "finish."
