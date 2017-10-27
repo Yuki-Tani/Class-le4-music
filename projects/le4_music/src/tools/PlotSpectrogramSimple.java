@@ -87,6 +87,9 @@ public class PlotSpectrogramSimple extends Application {
 
 	}
 	
+	/*
+	 * スペクトログラム用のチャートを作成する
+	 */
 	public static LineChartWithSpectrogram<Number, Number> makeSpectrogramChart(
 			double[][] spectrogramData,
 			double frameDuration,
@@ -118,7 +121,7 @@ public class PlotSpectrogramSimple extends Application {
 		yAxis.setTickUnit(sampleRate * 0.05);
 		yAxis.setAutoRanging(false);
 		
-		// chチャート作成
+		// チャート作成
 		final LineChartWithSpectrogram<Number, Number> chart = new LineChartWithSpectrogram<>(xAxis, yAxis);
 		chart.setParameters(spectrogramData.length, fftHalfSize, sampleRate * 0.5);
 		chart.setTitle(title);

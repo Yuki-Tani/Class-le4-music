@@ -62,7 +62,6 @@ public class SpeechRecognizer {
 			for(int k=0; k<cepstrum.size(); k++) {
 				double[] ceps = cepstrum.get(k);
 				for(int j=0;j<ceps.length;j++) {
-					//if(ceps[j])
 					mean[j] += ceps[j]/cepstrum.size();
 				}
 			}			
@@ -98,6 +97,9 @@ public class SpeechRecognizer {
 		}
 	}
 	
+	/*
+	 * 音声認識器の作成
+	 */
 	public SpeechRecognizer() {this(Constants.SPEECH_RECOGNITION_TEACHER_FILE);}
 	public SpeechRecognizer(String teacherFile) {
 		//　認識モデル読み込み(vowel.tch -> data)
@@ -175,8 +177,9 @@ public class SpeechRecognizer {
 	public double[] toSpeach(double[] wave, double sampleRate, int frameSize, int shiftSize) {
 		double[] speach = 
 				Le4MusicUtils.sliding(wave, frameSize , shiftSize).mapToDouble(frame ->
-				// 無声音は0とする
-					(TransformTools.isVoicedSound(frame, sampleRate))? 
+				// 無声音,雑音は0とする
+					(//TransformTools.isVoicedSound(frame, sampleRate) &&
+						TransformTools.getRMSdB(frame)>Constants.LOUDNESS_FILTER)? 
 							recognize(frame):
 							0
 				).toArray();

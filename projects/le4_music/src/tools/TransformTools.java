@@ -122,7 +122,7 @@ public class TransformTools {
 		for(int i=0;i<miniWave.length;i++) {
 			double sum = 0;
 			for(int j=0;j<miniWave.length-i;j++) {
-				sum += miniWave[j]*miniWave[j+i];
+				sum += miniWave[j]*miniWave[j+i]; // 自己相関
 			}
 			//System.out.println("[slide:"+i+"] "+sum);
 			if(phase == 0) { // 第一の山
@@ -137,8 +137,6 @@ public class TransformTools {
 				if(sum < 0) break;
 			}
 		}
-		//System.out.print("slide : "+maxSlide+" ");
-		//System.out.println(" pitch:"+ (sampleRate / maxSlide));
 		if(maxSlide == 0) return 0;
 		return sampleRate / maxSlide;
 	}

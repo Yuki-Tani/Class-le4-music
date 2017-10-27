@@ -10,7 +10,9 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import jp.ac.kyoto_u.kuis.le4music.Le4MusicUtils;
@@ -53,7 +55,7 @@ public class SoundWaveAnalyzer extends Application{
 		
 		SpeechRecognizer recognizer = new SpeechRecognizer();
 		
-		
+		// 波形変換
 		double[][] spectrogram = TransformTools.toSpectrogram(wave, frameSize, shiftSize);
 		double[] pitch = TransformTools.toPitch(wave, sampleRate, frameSize, shiftSize);
 		double[] speech = recognizer.toSpeach(wave, sampleRate, frameSize, shiftSize);
@@ -119,6 +121,32 @@ public class SoundWaveAnalyzer extends Application{
 		ExportHandler exportHandler = new ExportHandler(chartScene);
 		exportButton.setOnAction(exportHandler);
 */		
+		double loudness = -24;
+		Label loudnessText = new Label("音量: "+loudness+" dB");
+		loudnessText.setMaxHeight(200);
+		loudnessText.setMinHeight(200);
+		
+		Label emptyText = new Label("");
+		emptyText.setMaxHeight(200);
+		emptyText.setMinHeight(200);
+		
+		
+		double frequency = 172.6;
+		Label freqText = new Label("基本周波数: "+frequency+" Hz");
+		freqText.setMaxHeight(200);
+		freqText.setMinHeight(200);
+		
+		String vowel = "あ";
+		Label vowelText = new Label("母音: "+vowel);
+		vowelText.setMaxHeight(200);
+		vowelText.setMinHeight(200);
+		
+		MenuBar menu = new MenuBar();
+		Menu importMenu = new Menu("import");
+		Menu exportMenu = new Menu("export");
+		menu.getMenus().addAll(importMenu,exportMenu);
+				
+		
 		// レイアウトの作成
 		BorderPane mainPane = new BorderPane();
 		BorderPane chartPane = new BorderPane();
@@ -126,17 +154,28 @@ public class SoundWaveAnalyzer extends Application{
 		BorderPane informationPane = new BorderPane();
 		BorderPane bottomInformationPane = new BorderPane();
 		
-		mainPane.setCenter(chartPane);
-		mainPane.setRight(informationPane);
-		chartPane.setBottom(bottomChartPane);
-		informationPane.setBottom(bottomInformationPane);
-		
 		// コンポーネントの設置
 		chartPane.setTop(waveChart);
 		chartPane.setCenter(spectrogramChart);
 		bottomChartPane.setCenter(pitchChart);
 		bottomChartPane.setBottom(speechChart);
-
+		
+		informationPane.setMaxWidth(180);
+		bottomInformationPane.setMinHeight(400);
+		bottomInformationPane.setMaxHeight(400);
+		
+		mainPane.setTop(menu);
+		
+		informationPane.setTop(loudnessText);
+		informationPane.setCenter(emptyText);
+		bottomInformationPane.setCenter(freqText);
+		bottomInformationPane.setBottom(vowelText);
+		
+		mainPane.setCenter(chartPane);
+		mainPane.setRight(informationPane);
+		chartPane.setBottom(bottomChartPane);
+		informationPane.setBottom(bottomInformationPane);
+		
 		final Scene scene = new Scene(mainPane, 800, 800);
 		
 		primaryStage.setScene(scene);
