@@ -43,6 +43,8 @@ public class RealTimeTest extends Application{
 		view1.getItems().add("player");
 		view2.getItems().add("recorder");
 		
+		Arrays.stream(AudioSystem.getMixerInfo()).forEach(t -> System.out.println(">>>"+t));
+		
 	
 		Recorder recorder = Recorder.builder()
                 .mixer(AudioSystem.getMixerInfo()[0])
